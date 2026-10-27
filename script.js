@@ -214,7 +214,20 @@
     lb.querySelector('.lb-close').addEventListener('click', closeLb);
     lb.querySelector('.lb-prev').addEventListener('click', () => stepLb(-1));
     lb.querySelector('.lb-next').addEventListener('click', () => stepLb(1));
-    lb.addEventListener('click', e => { if (e.target === lb || e.target.classList.contains('lb-stage')) closeLb(); });
+    // Click on the dark area around the picture closes the viewer; clicking the picture itself does not.
+    lb.addEventListener('click', e => {
+      if (e.target.closest('.lb-close, .lb-nav')) return;
+      if (e.target === lbImg && lbImg.naturalWidth) {
+        const r = lbImg.getBoundingClientRect(), cs = getComputedStyle(lbImg);
+        const cw = r.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        const ch = r.height - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+        const s = Math.min(cw / lbImg.naturalWidth, ch / lbImg.naturalHeight);
+        const dw = lbImg.naturalWidth * s, dh = lbImg.naturalHeight * s;
+        const cx = r.left + parseFloat(cs.paddingLeft) + cw / 2, cy = r.top + parseFloat(cs.paddingTop) + ch / 2;
+        if (Math.abs(e.clientX - cx) <= dw / 2 && Math.abs(e.clientY - cy) <= dh / 2) return;
+      }
+      closeLb();
+    });
     lbImg.addEventListener('load', () => lbImg.classList.remove('loading'));
     lbImg.addEventListener('error', () => lbImg.classList.remove('loading'));
 
